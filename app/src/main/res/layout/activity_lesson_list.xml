@@ -1,0 +1,42 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<FrameLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:gravity="center">
+	    <ImageView
+	    	android:contentDescription="Countryside"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:src="@drawable/background"
+			android:scaleType="centerCrop"
+	        android:gravity="center" />
+	    <fragment
+		    android:name="net.sekao.russian101.LessonListFragment"
+		    android:id="@+id/lesson_list"
+		    android:layout_width="match_parent"
+		    android:layout_height="match_parent"
+		    android:layout_marginLeft="16dp"
+		    android:layout_marginRight="16dp"
+		    android:layout_marginTop="100dp"
+		    tools:context=".LessonListActivity"
+		    android:gravity="center" />
+    </FrameLayout>
+    <FrameLayout
+		android:layout_width="match_parent"
+		android:layout_height="100dp"
+		android:gravity="top"
+		android:background="@android:color/transparent">
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:typeface="sans"
+			android:textSize="48dip"
+			android:textStyle="bold"
+			android:gravity="center"
+			android:background="@android:color/transparent"
+			android:text="@string/title_lesson_list" />
+	</FrameLayout>
+</FrameLayout>

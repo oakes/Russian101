@@ -1,0 +1,4 @@
+<net.sekao.russian101.TouchImageView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/lesson_image"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent" />
