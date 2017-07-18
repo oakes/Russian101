@@ -14,6 +14,7 @@
 (def text (partial create-element (.-Text ReactNative)))
 (def image (partial create-element (.-Image ReactNative)))
 (def touchable-highlight (partial create-element (.-TouchableHighlight ReactNative)))
+(def listview (partial create-element (.-ListView ReactNative)))
 
 (def logo-img (js/require "./images/cljs.png"))
 
@@ -22,14 +23,28 @@
 
 (defonce app-state (atom {:greeting "Hello Clojure in iOS and Android!"}))
 
+(def menu-rows [["Alphabet" "алфавит"]
+                ["Meeting People" "Знакомство"]
+                ["Family" "семья"]
+                ["Where do you work?" "Где вы работаете?"]
+                ["Where do you live?" "Где вы живете?"]
+                ["Shopping" "покупки"]
+                ["In the restaurant" "В ресторане"]
+                ["Transportation" "транспорт"]
+                ["In the hotel" "В гостинице"]
+                ["The telephone" "телефон"]])
+
+(def ds (-> (ReactNative.ListView.DataSource.
+              (clj->js {:rowHasChanged (fn [r1 r2] (not= r1 r2))}))
+            (.cloneWithRows (clj->js menu-rows))))
+
 (defc AppRoot < rum/reactive [state]
-  (view {:style {:flexDirection "column" :margin 40 :alignItems "center"}}
-    (text {:style {:fontSize 30 :fontWeight "100" :marginBottom 20 :textAlign "center"}} (:greeting (rum/react state)))
-    (image {:source logo-img
-            :style  {:width 80 :height 80 :marginBottom 30}})
-    (touchable-highlight {:style   {:backgroundColor "#999" :padding 10 :borderRadius 5}
-                          :onPress #(alert "HELLO!")}
-      (text {:style {:color "white" :textAlign "center" :fontWeight "bold"}} "press me"))))
+  (listview {:style {:margin 20}
+             :dataSource ds
+             :renderRow (fn [row-data]
+                          (view {:style {:margin 5}}
+                            (text {:style {:fontSize 30}} (aget row-data 0))
+                            (text {:style {:fontSize 20}} (aget row-data 1))))}))
 
 (defonce root-component-factory (support/make-root-component-factory))
 
