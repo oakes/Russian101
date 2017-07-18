@@ -1,5 +1,5 @@
 (ns ^:figwheel-no-load env.ios.main
-  (:require [russian101.ios.core :as core]
+  (:require [russian101.core :as core]
             [figwheel.client :as figwheel :include-macros true]))
 
 (enable-console-print!)
