@@ -1,4 +1,4 @@
-package com.russian101;
+package net.sekao.russian101;
 
 import android.app.Application;
 
