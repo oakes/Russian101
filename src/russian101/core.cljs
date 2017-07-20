@@ -45,21 +45,32 @@
               (clj->js {:rowHasChanged not=}))
             (.cloneWithRows (clj->js menu-rows))))
 
-(defc home < rum/reactive [state]
+(defc lesson < rum/reactive [state props]
+  (let [{:keys [current-lesson]} (rum/react state)]
+    (text {})))
+
+(defc home < rum/reactive [state props]
   (listview {:dataSource ds
              :renderRow (fn [row-data]
                           (let [title (aget row-data 0)
                                 subtitle (aget row-data 1)
                                 lesson (aget row-data 2)]
                             (touchable-opacity {:onPress (fn []
-                                                           (swap! state assoc :current-lesson lesson))}
+                                                           (swap! state assoc :current-lesson lesson)
+                                                           (-> props .-navigation (.navigate "lesson")))}
                               (view {:style {:margin 5}}
                                 (text {:style {:fontSize 30}} title)
                                 (text {:style {:fontSize 20}} subtitle)))))}))
 
 (defc root < rum/reactive [state]
-  (-> (clj->js {:home {:screen #(home state)
-                       :navigationOptions {:title "Russian 101"}}})
+  (-> (clj->js {:home {:screen #(home state %)
+                       :navigationOptions {:title "Russian 101"
+                                           :headerBackTitle nil}}
+                :lesson {:screen #(lesson state %)
+                         :navigationOptions (fn []
+                                              (let [{:keys [current-lesson]} @state
+                                                    lesson-name (get-in menu-rows [(dec current-lesson) 0])]
+                                                (clj->js {:title lesson-name})))}})
       (stack-navigator (clj->js {:initialRouteName :home}))
       (create-element {})))
 
