@@ -12,7 +12,7 @@ I want to learn Russian too, for several of these reasons. That's why I made thi
 * Install Android Studio
 * Install the latest JDK
 * `brew install npm watchman leiningen`
-* `npm install -g react-native-cli re-natal`
+* `npm install -g react-native-cli re-natal react-navigation`
 
 ### iOS
 

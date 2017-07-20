@@ -5,6 +5,7 @@
 
 (set! js/window.React (js/require "react"))
 (def ReactNative (js/require "react-native"))
+(def ReactNavigation (js/require "react-navigation"))
 
 (defn create-element [rn-comp opts & children]
   (apply js/React.createElement rn-comp (clj->js opts) children))
@@ -16,6 +17,7 @@
 (def touchable-highlight (partial create-element (.-TouchableHighlight ReactNative)))
 (def listview (partial create-element (.-ListView ReactNative)))
 (def touchable-opacity (partial create-element (.-TouchableOpacity ReactNative)))
+(def stack-navigator (.-StackNavigator ReactNavigation))
 
 (def logo-img (js/require "./images/cljs.png"))
 
@@ -43,23 +45,27 @@
               (clj->js {:rowHasChanged not=}))
             (.cloneWithRows (clj->js menu-rows))))
 
-(defc AppRoot < rum/reactive [state]
-  (let [{:keys [current-lesson current-page]} (rum/react state)]
-    (listview {:style {:margin 20}
-               :dataSource ds
-               :renderRow (fn [row-data]
-                            (let [title (aget row-data 0)
-                                  subtitle (aget row-data 1)
-                                  lesson (aget row-data 2)]
-                              (touchable-opacity {:onPress (fn []
-                                                             (swap! state assoc :current-lesson lesson))}
-                                (view {:style {:margin 5}}
-                                  (text {:style {:fontSize 30}} title)
-                                  (text {:style {:fontSize 20}} subtitle)))))})))
+(defc home < rum/reactive [state]
+  (listview {:dataSource ds
+             :renderRow (fn [row-data]
+                          (let [title (aget row-data 0)
+                                subtitle (aget row-data 1)
+                                lesson (aget row-data 2)]
+                            (touchable-opacity {:onPress (fn []
+                                                           (swap! state assoc :current-lesson lesson))}
+                              (view {:style {:margin 5}}
+                                (text {:style {:fontSize 30}} title)
+                                (text {:style {:fontSize 20}} subtitle)))))}))
+
+(defc root < rum/reactive [state]
+  (-> (clj->js {:home {:screen #(home state)
+                       :navigationOptions {:title "Russian 101"}}})
+      (stack-navigator (clj->js {:initialRouteName :home}))
+      (create-element {})))
 
 (defonce root-component-factory (support/make-root-component-factory))
 
-(defn mount-app [] (support/mount (AppRoot app-state)))
+(defn mount-app [] (support/mount (root app-state)))
 
 (defn init []
   (mount-app)
