@@ -120,21 +120,83 @@ class Lesson extends StatelessWidget {
   }
 }
 
-class Page extends StatelessWidget {
+class Page extends StatefulWidget {
   Page({Key key, this.lessonNum, this.pageNum}) : super(key: key);
 
   final num lessonNum;
   final num pageNum;
 
   @override
+  PageState createState() => new PageState();
+}
+
+class PageState extends State<Page> {
+  bool _isPlaying = false;
+  double _position = 0.0;
+
+  play() {
+    setState(() {
+      _isPlaying = true;
+    });
+  }
+
+  pause() {
+    setState(() {
+      _isPlaying = false;
+    });
+  }
+
+  Widget createPlayer(BuildContext context) {
+    var playButton = new IconButton(
+        onPressed: play,
+        iconSize: 50.0,
+        icon: new Icon(Icons.play_arrow),
+        color: Colors.blue
+    );
+    var pauseButton = new IconButton(
+        onPressed: pause,
+        iconSize: 50.0,
+        icon: new Icon(Icons.pause),
+        color: Colors.blue
+    );
+
+    return new Material(
+        child: new Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              new Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _isPlaying ? pauseButton : playButton,
+                  ]
+              ),
+              new Expanded(
+                child: new Slider(
+                    value: _position,
+                    onChanged: (newVal) {
+                      setState(() {
+                        _position = newVal;
+                      });
+                    },
+                )
+              ),
+            ]
+        )
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(
-      ),
-      body: new Image(
-        image: new AssetImage("assets/lesson$lessonNum/$pageNum.png"),
-        fit: BoxFit.contain,
-      )
+        appBar: new AppBar(
+        ),
+        body: new Column(mainAxisSize: MainAxisSize.min, children: [
+          createPlayer(context),
+          new Image(
+            image: new AssetImage("assets/lesson${widget.lessonNum}/${widget.pageNum}.png"),
+            fit: BoxFit.contain,
+          )]
+        )
     );
   }
 }
