@@ -85,9 +85,20 @@ class Lesson extends StatelessWidget {
   List<Widget> createPages(BuildContext context) {
     var pages = new List<Widget>();
     for (var i=1; i<=pageCount; i++) {
-      pages.add(new Image(
-        image: new AssetImage("assets/lesson$lessonNum/$i.png"),
-        fit: BoxFit.contain,
+      pages.add(new GestureDetector(
+        child: new Image(
+          image: new AssetImage("assets/lesson$lessonNum/$i.png"),
+          fit: BoxFit.contain,
+        ),
+        onTap: () {
+          Navigator.of(context).push(
+            new MaterialPageRoute<Null>(
+              builder: (BuildContext context) {
+                return new Page(lessonNum: lessonNum, pageNum: i);
+              }
+            )
+          );
+        }
       ));
     }
     return pages;
@@ -110,11 +121,20 @@ class Lesson extends StatelessWidget {
 }
 
 class Page extends StatelessWidget {
+  Page({Key key, this.lessonNum, this.pageNum}) : super(key: key);
+
+  final num lessonNum;
+  final num pageNum;
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
       ),
+      body: new Image(
+        image: new AssetImage("assets/lesson$lessonNum/$pageNum.png"),
+        fit: BoxFit.contain,
+      )
     );
   }
 }
