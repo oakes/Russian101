@@ -183,6 +183,8 @@
 				TargetAttributes = {
 					97C146ED1CF9000F007C117D = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = 445UCQ79D9;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -426,6 +428,8 @@
 			buildSettings = {
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				DEVELOPMENT_TEAM = 445UCQ79D9;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -439,6 +443,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = net.sekao.russian101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "0d4dbf52-34e0-4b19-b69c-993aee0065c0";
+				PROVISIONING_PROFILE_SPECIFIER = "Russian 101";
 			};
 			name = Debug;
 		};
@@ -448,6 +454,8 @@
 			buildSettings = {
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				DEVELOPMENT_TEAM = 445UCQ79D9;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -461,6 +469,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = net.sekao.russian101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "0d4dbf52-34e0-4b19-b69c-993aee0065c0";
+				PROVISIONING_PROFILE_SPECIFIER = "Russian 101";
 			};
 			name = Release;
 		};
