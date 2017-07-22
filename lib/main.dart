@@ -304,9 +304,11 @@ class PageState extends State<Page> {
             mainAxisSize: MainAxisSize.max,
             children: [
               createPlayer(),
-              new Image(
-                image: new AssetImage("assets/lesson${widget.lessonNum}/${widget.pageNum}.png"),
-                fit: BoxFit.contain,
+              new Expanded(
+                child: new Image(
+                  image: new AssetImage("assets/lesson${widget.lessonNum}/${widget.pageNum}.png"),
+                  fit: BoxFit.contain,
+                ),
               ),
             ]
         )
