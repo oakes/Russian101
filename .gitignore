@@ -1,6 +1,7 @@
 .DS_Store
 .atom/
-.idea
+.idea/workspace.xml
+.idea/tasks.xml
 .packages
 .pub/
 build/
