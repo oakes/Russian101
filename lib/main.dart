@@ -257,7 +257,9 @@ class PageState extends State<Page> {
                         duration.inMilliseconds
                         : 0.0,
                     onChanged: (newVal) {
-                        audioPlayer.seek(newVal * duration.inSeconds);
+                        if (duration != null) {
+                          audioPlayer.seek(newVal * duration.inSeconds);
+                        }
                     },
                 )
               ),
