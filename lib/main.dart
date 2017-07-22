@@ -22,6 +22,10 @@ var menuRows = [
 
 const listWidth = 300.0;
 
+/*
+ * Russian101
+ */
+
 class Russian101 extends StatelessWidget {
   Map<String, WidgetBuilder> createRoutes() {
     var routes = new Map<String, WidgetBuilder>();
@@ -53,6 +57,10 @@ class Russian101 extends StatelessWidget {
     );
   }
 }
+
+/*
+ * Home
+ */
 
 class Home extends StatefulWidget {
   Home({Key key, this.title}) : super(key: key);
@@ -133,13 +141,15 @@ class HomeState extends State<Home> {
   }
 }
 
-openPage (BuildContext context, int lessonNum, int pageNum, int pageCount) {
-  Navigator.of(context).push(
-      new MaterialPageRoute<Null>(
-          builder: (BuildContext context) {
-            return new Page(lessonNum: lessonNum, pageNum: pageNum, pageCount: pageCount);
-          }
-      )
+/*
+ * Lesson
+ */
+
+createPageRoute (int lessonNum, int pageNum, int pageCount) {
+  return new MaterialPageRoute<Null>(
+      builder: (BuildContext context) {
+        return new Page(lessonNum: lessonNum, pageNum: pageNum, pageCount: pageCount);
+      }
   );
 }
 
@@ -158,7 +168,7 @@ class Lesson extends StatelessWidget {
           fit: BoxFit.contain,
         ),
         onTap: () {
-          openPage(context, lessonNum, i, pageCount);
+          Navigator.of(context).push(createPageRoute(lessonNum, i, pageCount));
         }
       ));
     }
@@ -175,6 +185,10 @@ class Lesson extends StatelessWidget {
     );
   }
 }
+
+/*
+ * Page
+ */
 
 class Page extends StatefulWidget {
   Page({Key key, this.lessonNum, this.pageNum, this.pageCount}) : super(key: key);
@@ -265,7 +279,9 @@ class PageState extends State<Page> {
     audioPlayer.setCompletionHandler(() {
       Navigator.of(context).pop();
       if (widget.pageNum < widget.pageCount) {
-        openPage(context, widget.lessonNum, widget.pageNum+1, widget.pageCount);
+        Navigator.of(context).push(
+          createPageRoute(widget.lessonNum, widget.pageNum+1, widget.pageCount)
+        );
       }
     });
   }
