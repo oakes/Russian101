@@ -87,7 +87,7 @@ class HomeState extends State<Home> {
       rows.add(new ListTile(
         title: new Text(row[0]),
         subtitle: new Text(row[1]),
-        selected: currentLesson == i+1,
+        selected: isSmall ? false : currentLesson == i+1,
         onTap: () {
           setState(() {
             currentLesson = i+1;
