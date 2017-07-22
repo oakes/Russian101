@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:audioplayer/audioplayer.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(new Russian101());
@@ -131,22 +134,35 @@ class Page extends StatefulWidget {
 }
 
 class PageState extends State<Page> {
-  bool _isPlaying = false;
-  double _position = 0.0;
+  bool isPlaying = false;
+  Duration position;
+  Duration duration;
+  AudioPlayer audioPlayer;
 
-  play() {
-    setState(() {
-      _isPlaying = true;
-    });
+  play() async {
+    final soundData = await DefaultAssetBundle.of(context).load("assets/lesson${widget.lessonNum}/${widget.pageNum}.m4a");
+    final bytes = soundData.buffer.asUint8List();
+    final dir = await getApplicationDocumentsDirectory();
+    final file = new File("${dir.path}/${widget.lessonNum}-${widget.pageNum}.m4a");
+    await file.writeAsBytes(bytes);
+    final result = await audioPlayer.play(file.path, isLocal: true);
+    if (result == 1) {
+      setState(() {
+        isPlaying = true;
+      });
+    }
   }
 
-  pause() {
-    setState(() {
-      _isPlaying = false;
-    });
+  pause() async {
+    final result = await audioPlayer.pause();
+    if (result == 1) {
+      setState(() {
+        isPlaying = false;
+      });
+    }
   }
 
-  Widget createPlayer(BuildContext context) {
+  Widget createPlayer() {
     var playButton = new IconButton(
         onPressed: play,
         iconSize: 50.0,
@@ -164,19 +180,15 @@ class PageState extends State<Page> {
         child: new Row(
             mainAxisSize: MainAxisSize.max,
             children: [
-              new Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _isPlaying ? pauseButton : playButton,
-                  ]
-              ),
+            isPlaying ? pauseButton : playButton,
               new Expanded(
                 child: new Slider(
-                    value: _position,
+                    value: position != null &&
+                        position.inMilliseconds > 0
+                        ? position.inMilliseconds /
+                        duration.inMilliseconds
+                        : 0.0,
                     onChanged: (newVal) {
-                      setState(() {
-                        _position = newVal;
-                      });
                     },
                 )
               ),
@@ -186,16 +198,36 @@ class PageState extends State<Page> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    audioPlayer = new AudioPlayer();
+    audioPlayer.setDurationHandler((d) => setState(() {
+      duration = d;
+    }));
+    audioPlayer.setPositionHandler((p) => setState(() {
+      position = p;
+    }));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    audioPlayer.stop();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return new Scaffold(
-        appBar: new AppBar(
-        ),
-        body: new Column(mainAxisSize: MainAxisSize.min, children: [
-          createPlayer(context),
-          new Image(
-            image: new AssetImage("assets/lesson${widget.lessonNum}/${widget.pageNum}.png"),
-            fit: BoxFit.contain,
-          )]
+        appBar: new AppBar(),
+        body: new Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              createPlayer(),
+              new Image(
+                image: new AssetImage("assets/lesson${widget.lessonNum}/${widget.pageNum}.png"),
+                fit: BoxFit.contain,
+              ),
+            ]
         )
     );
   }
