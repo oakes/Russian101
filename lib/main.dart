@@ -78,12 +78,22 @@ class Home extends StatelessWidget {
   }
 }
 
+openPage (BuildContext context, int lessonNum, int pageNum, int pageCount) {
+  Navigator.of(context).push(
+      new MaterialPageRoute<Null>(
+          builder: (BuildContext context) {
+            return new Page(lessonNum: lessonNum, pageNum: pageNum, pageCount: pageCount);
+          }
+      )
+  );
+}
+
 class Lesson extends StatelessWidget {
   Lesson({Key key, this.title, this.lessonNum, this.pageCount}) : super(key: key);
 
   final String title;
-  final num lessonNum;
-  final num pageCount;
+  final int lessonNum;
+  final int pageCount;
 
   List<Widget> createPages(BuildContext context) {
     var pages = new List<Widget>();
@@ -94,13 +104,7 @@ class Lesson extends StatelessWidget {
           fit: BoxFit.contain,
         ),
         onTap: () {
-          Navigator.of(context).push(
-            new MaterialPageRoute<Null>(
-              builder: (BuildContext context) {
-                return new Page(lessonNum: lessonNum, pageNum: i);
-              }
-            )
-          );
+          openPage(context, lessonNum, i, pageCount);
         }
       ));
     }
@@ -124,10 +128,11 @@ class Lesson extends StatelessWidget {
 }
 
 class Page extends StatefulWidget {
-  Page({Key key, this.lessonNum, this.pageNum}) : super(key: key);
+  Page({Key key, this.lessonNum, this.pageNum, this.pageCount}) : super(key: key);
 
-  final num lessonNum;
-  final num pageNum;
+  final int lessonNum;
+  final int pageNum;
+  final int pageCount;
 
   @override
   PageState createState() => new PageState();
@@ -208,6 +213,12 @@ class PageState extends State<Page> {
     audioPlayer.setPositionHandler((p) => setState(() {
       position = p;
     }));
+    audioPlayer.setCompletionHandler(() {
+      Navigator.of(context).pop();
+      if (widget.pageNum < widget.pageCount) {
+        openPage(context, widget.lessonNum, widget.pageNum+1, widget.pageCount);
+      }
+    });
   }
 
   @override
@@ -219,7 +230,9 @@ class PageState extends State<Page> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-        appBar: new AppBar(),
+        appBar: new AppBar(
+          title: new Text("Page " + widget.pageNum.toString())
+        ),
         body: new Column(
             mainAxisSize: MainAxisSize.max,
             children: [
