@@ -20,6 +20,8 @@ var menuRows = [
   ["The telephone", "телефон", 24],
 ];
 
+const listWidth = 300.0;
+
 class Russian101 extends StatelessWidget {
   Map<String, WidgetBuilder> createRoutes() {
     var routes = new Map<String, WidgetBuilder>();
@@ -27,7 +29,14 @@ class Russian101 extends StatelessWidget {
       var row = menuRows[i];
       routes.putIfAbsent(
           row[0].toString(),
-          () => (BuildContext context) => new Lesson(title: row[0], lessonNum: i+1, pageCount: row[2])
+          () => (BuildContext context) {
+            return new Scaffold(
+                appBar: new AppBar(
+                    title: new Text(row[0]),
+                ),
+                body: new Lesson(lessonNum: i+1, pageCount: row[2]),
+            );
+          }
       );
     }
     return routes;
@@ -45,36 +54,82 @@ class Russian101 extends StatelessWidget {
   }
 }
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   Home({Key key, this.title}) : super(key: key);
 
   final String title;
 
-  List<Widget> createRows(BuildContext context) {
+  @override
+  HomeState createState() => new HomeState();
+}
+
+class HomeState extends State<Home> {
+  int currentLesson;
+
+  @override
+  void initState() {
+    super.initState();
+    currentLesson = 1;
+  }
+
+  List<Widget> createRows(BuildContext context, bool isSmall) {
     var rows = new List<Widget>();
-    menuRows.forEach((row) {
+    for (var i=0; i<menuRows.length; i++) {
+      var row = menuRows[i];
       rows.add(new ListTile(
         title: new Text(row[0]),
         subtitle: new Text(row[1]),
+        selected: currentLesson == i+1,
         onTap: () {
-          Navigator.of(context).pushNamed(row[0]);
+          setState(() {
+            currentLesson = i+1;
+          });
+          if (isSmall) {
+            Navigator.of(context).pushNamed(row[0]);
+          }
         },
       ));
-    });
+    }
     return rows;
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text(title),
-      ),
-      body: new ListView(
-        padding: new EdgeInsets.all(8.0),
-        children: createRows(context),
-      ),
-    );
+    return new LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
+      if (constraints.maxWidth < listWidth * 2) {
+        return new Scaffold(
+          appBar: new AppBar(
+            title: new Text(widget.title),
+          ),
+          body: new ListView(
+            padding: new EdgeInsets.all(8.0),
+            children: createRows(context, true),
+          ),
+        );
+      }
+      else {
+        return new Scaffold(
+          appBar: new AppBar(
+            title: new Text(widget.title),
+          ),
+          body: new Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              new Container(
+                width: listWidth,
+                child: new ListView(
+                  padding: new EdgeInsets.all(8.0),
+                  children: createRows(context, false),
+                ),
+              ),
+              new Expanded(
+                child: new Lesson(lessonNum: currentLesson, pageCount: menuRows[currentLesson-1][2]),
+              ),
+            ]
+          ),
+        );
+      }
+    });
   }
 }
 
@@ -89,9 +144,8 @@ openPage (BuildContext context, int lessonNum, int pageNum, int pageCount) {
 }
 
 class Lesson extends StatelessWidget {
-  Lesson({Key key, this.title, this.lessonNum, this.pageCount}) : super(key: key);
+  Lesson({Key key, this.lessonNum, this.pageCount}) : super(key: key);
 
-  final String title;
   final int lessonNum;
   final int pageCount;
 
@@ -113,16 +167,11 @@ class Lesson extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text(title),
-      ),
-      body: new GridView.extent(
-        children: createPages(context),
-        maxCrossAxisExtent: 150.0,
-        mainAxisSpacing: 10.0,
-        crossAxisSpacing: 10.0,
-      )
+    return new GridView.extent(
+      children: createPages(context),
+      maxCrossAxisExtent: 150.0,
+      mainAxisSpacing: 10.0,
+      crossAxisSpacing: 10.0,
     );
   }
 }
