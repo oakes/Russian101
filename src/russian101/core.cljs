@@ -27,40 +27,54 @@
 (defonce app-state (atom {:current-lesson nil
                           :current-page nil}))
 
-(def menu-rows [; Title Subtitle Lession
-                ["Alphabet" "алфавит" 1]
-                ["Meeting People" "Знакомство" 2]
-                ["Family" "семья" 3]
-                ["Where do you work?" "Где вы работаете?" 4]
-                ["Where do you live?" "Где вы живете?" 5]
-                ["Shopping" "покупки" 6]
-                ["In the restaurant" "В ресторане" 7]
-                ["Transportation" "транспорт" 8]
-                ["In the hotel" "В гостинице" 9]
-                ["The telephone" "телефон" 10]])
+(def menu-rows [; Title, Subtitle, Page Count
+                ["Alphabet" "алфавит" 35]
+                ["Meeting People" "Знакомство" 9]
+                ["Family" "семья" 8]
+                ["Where do you work?" "Где вы работаете?" 13]
+                ["Where do you live?" "Где вы живете?" 8]
+                ["Shopping" "покупки" 27]
+                ["In the restaurant" "В ресторане" 23]
+                ["Transportation" "транспорт" 18]
+                ["In the hotel" "В гостинице" 18]
+                ["The telephone" "телефон" 24]])
 
-(def page-count [35 9 8 13 8 27 23 18 18 24])
-
-(def ds (-> (ReactNative.ListView.DataSource.
-              (clj->js {:rowHasChanged not=}))
-            (.cloneWithRows (clj->js menu-rows))))
-
-(defc lesson < rum/reactive [state props]
-  (let [{:keys [current-lesson]} (rum/react state)]
-    (text {})))
+(def home-ds (-> (ReactNative.ListView.DataSource.
+                   (clj->js {:rowHasChanged not=}))
+                 (.cloneWithRows (clj->js menu-rows))))
 
 (defc home < rum/reactive [state props]
-  (listview {:dataSource ds
-             :renderRow (fn [row-data]
+  (listview {:dataSource home-ds
+             :renderRow (fn [row-data sid rid]
                           (let [title (aget row-data 0)
-                                subtitle (aget row-data 1)
-                                lesson (aget row-data 2)]
+                                subtitle (aget row-data 1)]
                             (touchable-opacity {:onPress (fn []
-                                                           (swap! state assoc :current-lesson lesson)
+                                                           (swap! state assoc :current-lesson (int rid))
                                                            (-> props .-navigation (.navigate "lesson")))}
                               (view {:style {:margin 5}}
                                 (text {:style {:fontSize 30}} title)
                                 (text {:style {:fontSize 20}} subtitle)))))}))
+
+(defc lesson < rum/reactive [state props]
+  (let [{:keys [current-lesson]} (rum/react state)
+        page-count (get-in menu-rows [current-lesson 2])
+        pages (doall
+                (for [i (range page-count)]
+                  (str "./images/lesson" (inc current-lesson) "/" (inc i) ".png")))]
+    (listview {:dataSource (-> (ReactNative.ListView.DataSource.
+                                 (clj->js {:rowHasChanged not=}))
+                               (.cloneWithRows (clj->js pages)))
+               :renderRow (fn [row-data sid rid]
+                            (view {:style {:margin 5}}
+                              (image {:style {:width 100 :height 100}
+                                      :source (js/require row-data)
+                                      :resizeMode "contain"})))
+               :pageSize 3
+               :initialListSize page-count
+               :contentContainerStyle {:justifyContent "space-around"
+                                       :flexDirection "row"
+                                       :flexWrap "wrap"
+                                       :alignItems "flex-start"}})))
 
 (defc root < rum/reactive [state]
   (-> (clj->js {:home {:screen #(home state %)
@@ -69,7 +83,7 @@
                 :lesson {:screen #(lesson state %)
                          :navigationOptions (fn []
                                               (let [{:keys [current-lesson]} @state
-                                                    lesson-name (get-in menu-rows [(dec current-lesson) 0])]
+                                                    lesson-name (get-in menu-rows [current-lesson 0])]
                                                 (clj->js {:title lesson-name})))}})
       (stack-navigator (clj->js {:initialRouteName :home}))
       (create-element {})))
