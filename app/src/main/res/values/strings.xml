@@ -1,7 +1,3 @@
 <resources>
-
     <string name="app_name">Russian 101</string>
-    <string name="title_lesson_detail">Lesson Detail</string>
-    <string name="title_lesson_list">Russian 101</string>
-
 </resources>
