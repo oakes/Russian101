@@ -1,15 +1,15 @@
 package net.sekao.russian101
 
-import android.support.v7.app.AppCompatActivity
+import android.app.Activity
 import android.os.Bundle
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.Typeface.*
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
 import trikita.anvil.BaseDSL
 
 import trikita.anvil.RenderableView
@@ -31,6 +31,12 @@ val lessons = arrayOf(
     Lesson("In the hotel", "В гостинице"),
     Lesson("The telephone", "телефон")
 )
+
+const val argItemId = "item_id"
+
+class LessonDetailActivity : Activity() {
+
+}
 
 class LessonList(c: Context) : RenderableView(c) {
     var listAdapter = RenderableAdapter.withItems(lessons.toMutableList()) { pos, value ->
@@ -85,7 +91,11 @@ class LessonList(c: Context) : RenderableView(c) {
                     size(FILL, FILL)
                     itemsCanFocus(true)
                     onItemClick { parent, view, pos, id ->
-
+                        run {
+                            var intent = Intent(context, LessonDetailActivity::class.java)
+                            intent.putExtra(argItemId, id)
+                            context.startActivity(intent)
+                        }
                     }
                     adapter(listAdapter)
                 }
@@ -94,7 +104,7 @@ class LessonList(c: Context) : RenderableView(c) {
     }
 }
 
-class MainActivity : AppCompatActivity() {
+class LessonListActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(LessonList(this))
