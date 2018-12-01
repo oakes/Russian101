@@ -17,7 +17,8 @@
             </intent-filter>
         </activity>
         <activity
-                android:name=".LessonDetailActivity" >
+                android:name=".LessonDetailActivity"
+                android:launchMode ="singleInstance">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value=".LessonListActivity" />
