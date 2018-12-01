@@ -2,7 +2,6 @@ package net.sekao.russian101
 
 import android.app.Activity
 import android.os.Bundle
-
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -13,10 +12,9 @@ import android.util.Log
 import android.widget.GridView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import trikita.anvil.Anvil
 import trikita.anvil.BaseDSL
-
 import trikita.anvil.RenderableView
-
 import trikita.anvil.DSL.*
 import trikita.anvil.RenderableAdapter
 
@@ -46,7 +44,11 @@ const val backgroundColorAlpha = "#55005b98"
 class LessonDetail(c: Context) : RenderableView(c) {
     var gridAdapter: RenderableAdapter? = null
 
-    constructor(c: Context, num: Int): this(c) {
+    constructor (c: Context, lessonNum: Int) : this(c) {
+        setLessonNum(c, lessonNum)
+    }
+
+    fun setLessonNum (c: Context, num: Int) {
         gridAdapter = RenderableAdapter.withItems(0.rangeTo(pageCounts[num]-1).toMutableList()) { pos, value ->
             imageView {
                 imageBitmap(
@@ -58,15 +60,18 @@ class LessonDetail(c: Context) : RenderableView(c) {
                 )
             }
         }
+        Anvil.render(this)
     }
 
     override fun view() {
+        gridAdapter?.notifyDataSetChanged()
+
         val spacing = (10 * resources.displayMetrics.density).toInt()
 
         gridView {
+            size(FILL, FILL)
             backgroundColor(Color.parseColor(backgroundColor))
             padding((5 * resources.displayMetrics.density).toInt())
-            size(MATCH, MATCH)
             columnWidth((90 * resources.displayMetrics.density).toInt())
             numColumns(GridView.AUTO_FIT)
             verticalSpacing(spacing)
@@ -106,10 +111,13 @@ class LessonList(c: Context) : RenderableView(c) {
             }
         }
     }
+    var selectedLesson = 0
 
     override fun view() {
         listAdapter.notifyDataSetChanged()
 
+        val isTablet = resources.displayMetrics.widthPixels / resources.displayMetrics.density >= 900
+        val tabletWidth = (300 * resources.displayMetrics.density).toInt()
         val outerMargin = (16 * resources.displayMetrics.density).toInt()
 
         relativeLayout {
@@ -122,6 +130,7 @@ class LessonList(c: Context) : RenderableView(c) {
                 }
             }
             linearLayout {
+                size(MATCH, MATCH)
                 gravity(BaseDSL.TOP)
                 orientation(LinearLayout.VERTICAL)
                 margin(outerMargin, 0, outerMargin, 0)
@@ -132,18 +141,32 @@ class LessonList(c: Context) : RenderableView(c) {
                     gravity(BaseDSL.CENTER_HORIZONTAL)
                     text(R.string.app_name)
                 }
-                listView {
-                    backgroundColor(Color.parseColor(backgroundColorAlpha))
+                linearLayout {
                     size(FILL, FILL)
-                    itemsCanFocus(true)
-                    onItemClick { parent, view, pos, id ->
-                        run {
-                            val intent = Intent(context, LessonDetailActivity::class.java)
-                            intent.putExtra(argItemId, id.toInt())
-                            context.startActivity(intent)
+                    orientation(LinearLayout.HORIZONTAL)
+                    listView {
+                        backgroundColor(Color.parseColor(backgroundColorAlpha))
+                        size(if (isTablet) tabletWidth else FILL, FILL)
+                        itemsCanFocus(true)
+                        onItemClick { parent, view, pos, id ->
+                            run {
+                                if (isTablet) {
+                                    selectedLesson = pos
+                                }
+                                else {
+                                    val intent = Intent(context, LessonDetailActivity::class.java)
+                                    intent.putExtra(argItemId, pos)
+                                    context.startActivity(intent)
+                                }
+                            }
                         }
+                        adapter(listAdapter)
                     }
-                    adapter(listAdapter)
+                    if (isTablet) {
+                        v(LessonDetail::class.java, {
+                            Anvil.currentView<LessonDetail>().setLessonNum(this.context, selectedLesson)
+                        })
+                    }
                 }
             }
         }
