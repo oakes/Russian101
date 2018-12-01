@@ -23,6 +23,10 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value=".LessonListActivity" />
         </activity>
+        <activity
+                android:name=".PageActivity"
+                android:launchMode ="singleInstance">
+        </activity>
     </application>
 
 </manifest>
