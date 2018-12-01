@@ -10,7 +10,6 @@ import android.graphics.Typeface
 import android.graphics.Typeface.*
 import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridView
@@ -43,13 +42,13 @@ const val BACKGROUND_COLOR = "#005B98"
 const val BACKGROUND_COLOR_ALPHA = "#55005b98"
 
 class Page(c: Context) : RenderableView(c) {
+    var currentPage = 0
     var pageAdapter: PagerAdapter? = null
 
     constructor(c: Context, lessonNum: Int, pageNum: Int) : this(c) {
+        currentPage = pageNum
         val pageCount = LESSONS[lessonNum].pageCount
         pageAdapter = object : PagerAdapter() {
-            var pageNum = pageNum
-
             override fun isViewFromObject(p0: View, p1: Any): Boolean {
                 return p0 == p1
             }
@@ -76,10 +75,10 @@ class Page(c: Context) : RenderableView(c) {
             }
 
             override fun setPrimaryItem(container: ViewGroup, position: Int, `object`: Any) {
-                if (this.pageNum == position) {
+                if (currentPage == position) {
                     return
                 }
-                this.pageNum = position
+                currentPage = position
             }
         }
     }
@@ -91,7 +90,8 @@ class Page(c: Context) : RenderableView(c) {
             v(ViewPager::class.java) {
                 init {
                     val v = Anvil.currentView<ViewPager>()
-                    v.adapter = pageAdapter
+                    v.adapter = this.pageAdapter
+                    v.currentItem = this.currentPage
                 }
             }
         }
@@ -108,7 +108,7 @@ class PageActivity() : Activity() {
 }
 
 class LessonDetail(c: Context) : RenderableView(c) {
-    var lessonNum: Int = 0
+    var currentLesson: Int = 0
     var gridAdapter: RenderableAdapter? = null
     var isTablet = false
 
@@ -117,7 +117,7 @@ class LessonDetail(c: Context) : RenderableView(c) {
     }
 
     fun setLessonNum (c: Context, lessonNum: Int) {
-        this.lessonNum = lessonNum
+        this.currentLesson = lessonNum
         val pageCount = LESSONS[lessonNum].pageCount
         this.gridAdapter = RenderableAdapter.withItems(0.rangeTo(pageCount-1).toMutableList()) {
             pos, value ->
@@ -150,7 +150,7 @@ class LessonDetail(c: Context) : RenderableView(c) {
             onItemClick { parent, view, pos, id ->
                 run {
                     val intent = Intent(context, PageActivity::class.java)
-                    intent.putExtra(LESSON_NUM, this.lessonNum)
+                    intent.putExtra(LESSON_NUM, this.currentLesson)
                     intent.putExtra(PAGE_NUM, pos)
                     context.startActivity(intent)
                 }
