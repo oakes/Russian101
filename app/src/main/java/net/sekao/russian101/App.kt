@@ -43,6 +43,7 @@ const val backgroundColorAlpha = "#55005b98"
 
 class LessonDetail(c: Context) : RenderableView(c) {
     var gridAdapter: RenderableAdapter? = null
+    var isTablet = false
 
     constructor (c: Context, lessonNum: Int) : this(c) {
         setLessonNum(c, lessonNum)
@@ -70,7 +71,7 @@ class LessonDetail(c: Context) : RenderableView(c) {
 
         gridView {
             size(FILL, FILL)
-            backgroundColor(Color.parseColor(backgroundColor))
+            backgroundColor(Color.parseColor(if (isTablet) backgroundColorAlpha else backgroundColor))
             padding((5 * resources.displayMetrics.density).toInt())
             columnWidth((90 * resources.displayMetrics.density).toInt())
             numColumns(GridView.AUTO_FIT)
@@ -164,7 +165,9 @@ class LessonList(c: Context) : RenderableView(c) {
                     }
                     if (isTablet) {
                         v(LessonDetail::class.java, {
-                            Anvil.currentView<LessonDetail>().setLessonNum(this.context, selectedLesson)
+                            val v = Anvil.currentView<LessonDetail>()
+                            v.setLessonNum(this.context, selectedLesson)
+                            v.isTablet = true
                         })
                     }
                 }
