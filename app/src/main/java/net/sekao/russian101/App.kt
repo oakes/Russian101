@@ -164,11 +164,11 @@ class LessonList(c: Context) : RenderableView(c) {
                         adapter(listAdapter)
                     }
                     if (isTablet) {
-                        v(LessonDetail::class.java, {
+                        v(LessonDetail::class.java) {
                             val v = Anvil.currentView<LessonDetail>()
                             v.setLessonNum(this.context, selectedLesson)
                             v.isTablet = true
-                        })
+                        }
                     }
                 }
             }
