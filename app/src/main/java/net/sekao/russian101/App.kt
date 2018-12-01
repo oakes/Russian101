@@ -65,8 +65,6 @@ class LessonDetail(c: Context) : RenderableView(c) {
     }
 
     override fun view() {
-        gridAdapter?.notifyDataSetChanged()
-
         val spacing = (10 * resources.displayMetrics.density).toInt()
 
         gridView {
@@ -115,8 +113,6 @@ class LessonList(c: Context) : RenderableView(c) {
     var selectedLesson = 0
 
     override fun view() {
-        listAdapter.notifyDataSetChanged()
-
         val isTablet = resources.displayMetrics.widthPixels / resources.displayMetrics.density >= 900
         val tabletWidth = (300 * resources.displayMetrics.density).toInt()
         val outerMargin = (16 * resources.displayMetrics.density).toInt()
