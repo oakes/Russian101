@@ -202,6 +202,7 @@ class Page(c: Context) : RenderableView(c) {
 
     fun startPlayer() {
         mediaPlayer?.start()
+        mediaController?.show()
     }
 
     fun pausePlayer() {
