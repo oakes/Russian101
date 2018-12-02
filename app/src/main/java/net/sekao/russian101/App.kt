@@ -8,13 +8,18 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.Typeface.*
+import android.media.AudioManager
+import android.media.MediaPlayer
 import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
+import android.util.Log
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.MediaController
 import trikita.anvil.Anvil
 import trikita.anvil.BaseDSL
 import trikita.anvil.RenderableView
@@ -36,34 +41,46 @@ val LESSONS = arrayOf(
     Lesson("The telephone", "телефон", 24)
 )
 
-const val LESSON_NUM = "lesson"
-const val PAGE_NUM = "page"
+const val LESSON = "lesson"
+const val PAGE = "page"
 const val BACKGROUND_COLOR = "#005B98"
 const val BACKGROUND_COLOR_ALPHA = "#55005b98"
 
 class Page(c: Context) : RenderableView(c) {
+    var currentLesson = 0
     var currentPage = 0
+
+    var ctx = c
     var pageAdapter: PagerAdapter? = null
+    var mediaPlayer: MediaPlayer? = null
+    var mediaController: MediaController? = null
 
     constructor(c: Context, lessonNum: Int, pageNum: Int) : this(c) {
+        currentLesson = lessonNum
         currentPage = pageNum
-        val pageCount = LESSONS[lessonNum].pageCount
+
         pageAdapter = object : PagerAdapter() {
             override fun isViewFromObject(p0: View, p1: Any): Boolean {
                 return p0 == p1
             }
 
             override fun getCount(): Int {
-                return pageCount
+                return LESSONS[currentLesson].pageCount
             }
 
             override fun instantiateItem(container: ViewGroup, position: Int): Any {
-                val v = ImageView(c)
-                v.setImageBitmap(BitmapFactory.decodeStream(
-                    c.assets.open(
-                        "lesson" + (lessonNum + 1) + "/" + (position + 1) + ".webp"
-                    )
-                ))
+                val v = object : RenderableView(c) {
+                    override fun view() {
+                        imageView {
+                            size(MATCH, MATCH)
+                            imageBitmap(BitmapFactory.decodeStream(
+                                c.assets.open(
+                                    LESSON + (lessonNum + 1) + "/" + (position + 1) + ".webp"
+                                )
+                            ))
+                        }
+                    }
+                }
                 container.addView(v)
                 return v
             }
@@ -79,14 +96,132 @@ class Page(c: Context) : RenderableView(c) {
                     return
                 }
                 currentPage = position
+
+                stopPlayer()
+                mediaPlayer = createPlayer(c)
             }
         }
     }
 
+    private fun createController(c: Context, v: View) : MediaController {
+        val controller = object : MediaController(c) {
+            override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
+                if (c is Activity) {
+                    return c.dispatchKeyEvent(event)
+                }
+                return false
+            }
+
+            override fun hide() {
+                // never hide
+            }
+        }
+        controller.setAnchorView(v)
+        controller.setMediaPlayer(object : MediaController.MediaPlayerControl {
+            override fun canPause(): Boolean {
+                return true
+            }
+
+            override fun canSeekBackward(): Boolean {
+                return true
+            }
+
+            override fun canSeekForward(): Boolean {
+                return true
+            }
+
+            override fun getAudioSessionId(): Int {
+                return 0
+            }
+
+            override fun getBufferPercentage(): Int {
+                return 0;
+            }
+
+            override fun getCurrentPosition(): Int {
+                return mediaPlayer?.currentPosition ?: 0
+            }
+
+            override fun getDuration(): Int {
+                return mediaPlayer?.duration ?: 0
+            }
+
+            override fun isPlaying(): Boolean {
+                return mediaPlayer?.isPlaying ?: false
+            }
+
+            override fun pause() {
+                mediaPlayer?.pause()
+            }
+
+            override fun seekTo(pos: Int) {
+                mediaPlayer?.seekTo(pos)
+            }
+
+            override fun start() {
+                mediaPlayer?.start()
+            }
+        })
+        return controller
+    }
+
+    private fun createPlayer(c: Context) : MediaPlayer {
+        val player = MediaPlayer()
+        player.setAudioStreamType(AudioManager.STREAM_MUSIC)
+        val descriptor = c.assets.openFd(LESSON + (currentLesson+1) + "/" + (currentPage+1) + ".ogg")
+        player.setDataSource(
+            descriptor.fileDescriptor,
+            descriptor.startOffset,
+            descriptor.length
+        )
+        descriptor.close()
+        player.setOnPreparedListener(object: MediaPlayer.OnPreparedListener {
+            override fun onPrepared(mp: MediaPlayer?) {
+                mediaController?.show()
+            }
+        })
+        player.setOnCompletionListener(object: MediaPlayer.OnCompletionListener {
+            override fun onCompletion(mp: MediaPlayer?) {
+                val pageCount = LESSONS[currentLesson].pageCount
+                if (currentPage + 1 == pageCount) {
+                    return
+                }
+                currentPage++
+            }
+        })
+        player.prepare()
+        player.start()
+        return player
+    }
+
+    fun stopPlayer() {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
+    fun startPlayer() {
+        mediaPlayer?.start()
+    }
+
+    fun pausePlayer() {
+        mediaPlayer?.pause()
+    }
+
     override fun view() {
+        val playerHeight = (80 * resources.displayMetrics.density).toInt()
+
         linearLayout {
             size(FILL, FILL)
+            orientation(LinearLayout.VERTICAL)
             backgroundColor(Color.parseColor(BACKGROUND_COLOR))
+            view {
+                size(MATCH, playerHeight)
+                init {
+                    mediaController = createController(ctx, Anvil.currentView<View>())
+                    mediaPlayer = createPlayer(ctx)
+                }
+            }
             v(ViewPager::class.java) {
                 init {
                     val v = Anvil.currentView<ViewPager>()
@@ -99,11 +234,33 @@ class Page(c: Context) : RenderableView(c) {
 }
 
 class PageActivity() : Activity() {
+    var page: Page? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val lessonNum = this.intent.extras!!.getInt(LESSON_NUM)
-        val pageNum = this.intent.extras!!.getInt(PAGE_NUM)
-        setContentView(Page(this, lessonNum, pageNum))
+        val lessonNum = this.intent.extras!!.getInt(LESSON)
+        val pageNum = this.intent.extras!!.getInt(PAGE)
+        page = Page(this, lessonNum, pageNum)
+        setContentView(page)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        page?.stopPlayer()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        page?.startPlayer()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        page?.pausePlayer()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
     }
 }
 
@@ -125,7 +282,7 @@ class LessonDetail(c: Context) : RenderableView(c) {
                 imageBitmap(
                     BitmapFactory.decodeStream(
                         c.assets.open(
-                            "lesson" + (lessonNum + 1) + "/" + (pos + 1) + "t.webp"
+                            LESSON + (lessonNum + 1) + "/" + (pos + 1) + "t.webp"
                         )
                     )
                 )
@@ -150,8 +307,8 @@ class LessonDetail(c: Context) : RenderableView(c) {
             onItemClick { parent, view, pos, id ->
                 run {
                     val intent = Intent(context, PageActivity::class.java)
-                    intent.putExtra(LESSON_NUM, this.currentLesson)
-                    intent.putExtra(PAGE_NUM, pos)
+                    intent.putExtra(LESSON, this.currentLesson)
+                    intent.putExtra(PAGE, pos)
                     context.startActivity(intent)
                 }
             }
@@ -162,7 +319,7 @@ class LessonDetail(c: Context) : RenderableView(c) {
 class LessonDetailActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val lessonNum = this.intent.extras!!.getInt(LESSON_NUM)
+        val lessonNum = this.intent.extras!!.getInt(LESSON)
         setContentView(LessonDetail(this, lessonNum))
     }
 }
@@ -231,7 +388,7 @@ class LessonList(c: Context) : RenderableView(c) {
                                 }
                                 else {
                                     val intent = Intent(context, LessonDetailActivity::class.java)
-                                    intent.putExtra(LESSON_NUM, pos)
+                                    intent.putExtra(LESSON, pos)
                                     context.startActivity(intent)
                                 }
                             }
