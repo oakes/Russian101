@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:audioplayer/audioplayer.dart';
@@ -206,6 +207,8 @@ class PageState extends State<Page> {
   Duration position;
   Duration duration;
   AudioPlayer audioPlayer;
+  StreamSubscription<Duration> positionSub;
+  StreamSubscription<AudioPlayerState> stateSub;
 
   play() async {
     final soundData = await DefaultAssetBundle.of(context).load("assets/lesson${widget.lessonNum}/${widget.pageNum}.m4a");
@@ -213,21 +216,17 @@ class PageState extends State<Page> {
     final dir = await getApplicationDocumentsDirectory();
     final file = new File("${dir.path}/${widget.lessonNum}-${widget.pageNum}.m4a");
     await file.writeAsBytes(bytes);
-    final result = await audioPlayer.play(file.path, isLocal: true);
-    if (result == 1) {
-      setState(() {
-        isPlaying = true;
-      });
-    }
+    await audioPlayer.play(file.path, isLocal: true);
+    setState(() {
+      isPlaying = true;
+    });
   }
 
   pause() async {
-    final result = await audioPlayer.pause();
-    if (result == 1) {
-      setState(() {
-        isPlaying = false;
-      });
-    }
+    await audioPlayer.pause();
+    setState(() {
+      isPlaying = false;
+    });
   }
 
   Widget createPlayer() {
@@ -272,18 +271,22 @@ class PageState extends State<Page> {
   void initState() {
     super.initState();
     audioPlayer = new AudioPlayer();
-    audioPlayer.setDurationHandler((d) => setState(() {
-      duration = d;
-    }));
-    audioPlayer.setPositionHandler((p) => setState(() {
-      position = p;
-    }));
-    audioPlayer.setCompletionHandler(() {
-      Navigator.of(context).pop();
-      if (widget.pageNum < widget.pageCount) {
-        Navigator.of(context).push(
-          createPageRoute(widget.lessonNum, widget.pageNum+1, widget.pageCount)
-        );
+    positionSub = audioPlayer.onAudioPositionChanged.listen((p) =>
+        setState(() => position = p)
+    );
+    stateSub = audioPlayer.onPlayerStateChanged.listen((s) {
+      if (s == AudioPlayerState.PLAYING) {
+        setState(() => duration = audioPlayer.duration);
+      } else if (s == AudioPlayerState.STOPPED) {
+        Navigator.of(context).pop();
+        if (widget.pageNum < widget.pageCount) {
+          Navigator.of(context).push(
+              createPageRoute(widget.lessonNum, widget.pageNum+1, widget.pageCount)
+          );
+        }
+        setState(() {
+          position = duration;
+        });
       }
     });
   }
@@ -292,6 +295,8 @@ class PageState extends State<Page> {
   void dispose() {
     super.dispose();
     audioPlayer.stop();
+    positionSub.cancel();
+    stateSub.cancel();
   }
 
   @override
