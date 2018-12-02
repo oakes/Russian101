@@ -5,7 +5,6 @@ dependencies:
   flutter:
     sdk: flutter
   audioplayer:
-    path: audioplayer
   path_provider:
 
 # For information on the generic Dart part of this file, see the
